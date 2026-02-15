@@ -1,12 +1,27 @@
-from sqlalchemy import create_engine, MetaData, Table, select, update
+from sqlalchemy import (
+    create_engine, 
+    MetaData, 
+    Table, 
+    Column, 
+    Integer, 
+    Float, 
+    ForeignKey, 
+    select, 
+    update, 
+    func, 
+    desc
+)
 
-from helpers import login_required
+from helpers import login_required, usd, process_data_for_chart
 
 from flask import Flask, abort, render_template, redirect, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 app = Flask(__name__)
+
+app.jinja_env.filters["usd"] = usd
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -16,15 +31,118 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure connection to db
+# Configure connection to db and tables
 engine = create_engine("sqlite:///dry_cleaning.db", connect_args={"autocommit": False})
 metadata = MetaData()
-users_tab = Table("users", metadata, autoload_with=engine)
+users_tab = Table(
+    "users", 
+    metadata, 
+    autoload_with=engine
+)
+customers_tab = Table(
+    "customers", 
+    metadata,
+    Column("id", Integer, primary_key=True),
+    autoload_with=engine
+)
+items_tab = Table(
+    "items", 
+    metadata,
+    Column("id", Integer, primary_key=True),
+    autoload_with=engine
+)
+orders_tab = Table(
+    "orders", 
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("total", Float),
+    Column("customer_id", Integer, ForeignKey("customers.id")),
+    Column("item_id", Integer, ForeignKey("items.id")),
+    autoload_with=engine
+)
+
+# Number of top customers to display on the main dashboard webpage
+N_TOP_CUST = 10
+
+# Number of top countries by sales to be represented on pie chart explicitly
+N_TOP_COUNTRIES = 10
 
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+
+    # Collect total sales number by dates
+    with engine.connect() as conn:
+        stmt = (
+            select(orders_tab.c.order_date, 
+                   func.sum(orders_tab.c.total).label("total_sales"), 
+                   func.sum(orders_tab.c.quantity).label("total_quantity"))
+            .group_by(orders_tab.c.order_date)
+            .order_by(orders_tab.c.order_date)
+        )
+        orders = conn.execute(stmt).mappings().all()
+
+    orders_processed = process_data_for_chart(orders)
+    orders_processed['order_date'] = [d.split(' ')[0] for d in orders_processed["order_date"]]
+
+    # Collect top n customers by total sales
+    with engine.connect() as conn:
+        stmt = (
+            select(
+                customers_tab.c.name.label("name"),
+                customers_tab.c.country.label("country"),
+                func.sum(orders_tab.c.total).label("total_sales")
+            )
+            .join(customers_tab, orders_tab.c.customer_id == customers_tab.c.id)
+            .group_by(customers_tab.c.id)
+            .order_by(desc(func.sum(orders_tab.c.total)))
+            .limit(N_TOP_CUST)
+        )
+        top_customers = conn.execute(stmt).mappings().all()
+    
+    # Collect total sales by customers' country
+    with engine.connect() as conn:
+        stmt = (
+            select(
+                customers_tab.c.country.label("country"),
+                func.sum(orders_tab.c.total).label("total_sales")
+            )
+            .join(customers_tab, orders_tab.c.customer_id == customers_tab.c.id)
+            .group_by(customers_tab.c.country)
+            .order_by(desc(func.sum(orders_tab.c.total)))
+        )
+        countries = conn.execute(stmt).mappings().all()
+    countries_processed = process_data_for_chart(countries)
+    # Truncate countries_processed to include N top countries and the rest put in Others category
+    countries_processed["country"] = countries_processed["country"][:N_TOP_COUNTRIES]
+    total_sales = sum(countries_processed["total_sales"])
+    total_sales_other = sum(countries_processed["total_sales"][N_TOP_COUNTRIES:])
+    countries_processed["total_sales"] = countries_processed["total_sales"][:N_TOP_COUNTRIES]
+    assert (total_sales - (total_sales_other + sum(countries_processed["total_sales"]))) < 1e-7
+    countries_processed["country"].append("Other")
+    countries_processed["total_sales"].append(total_sales_other)
+
+    # Collect total sales by item name
+    with engine.connect() as conn:
+        stmt = (
+            select(
+                items_tab.c.name.label("name"),
+                func.sum(orders_tab.c.total).label("total_sales")
+            )
+            .join(items_tab, orders_tab.c.item_id == items_tab.c.id)
+            .group_by(items_tab.c.name)
+            .order_by(desc(func.sum(orders_tab.c.total)))
+        )
+        items = conn.execute(stmt).mappings().all()
+    items_processed = process_data_for_chart(items)
+    
+    return render_template(
+        "index.html",
+        ts_sales=orders_processed,
+        sales_countries=countries_processed,
+        sales_items=items_processed,
+        top_customers=top_customers
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -122,7 +240,7 @@ def change_password():
 
     else:
         return render_template("change_password.html")
-
+    
 @app.context_processor
 def inject_session():
 

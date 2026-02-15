@@ -1,5 +1,5 @@
 venv
-vscode
+.vscode
 flask_session
 .DS_Store
 __pycache__

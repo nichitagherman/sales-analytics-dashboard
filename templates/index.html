@@ -1,9 +1,65 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+<script>
+    let ts_sales = {{ ts_sales | tojson }};
+    let sales_countries = {{ sales_countries | tojson }};
+    let sales_items = {{ sales_items | tojson }};
+</script>
+<script type="module" src="{{ url_for('static', filename='js/charts_index.js') }}" defer></script>
+{% endblock %}
+
 {% block title %}
     Home
 {% endblock %}
 
 {% block main %}
+<div>
+
+    <div style="width: 50%;">
+        <div>
+            <p class="title">Total Sales</p>
+            <button id="download_total_"></button>
+        </div>
+        <div id="ts-sales"> </div>
+    </div>
+
+    <div style="width: 50%;">
+        <p class="title">Top {{ top_customers | length }} Customers by Total Sales</p>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Country</th>
+                    <th scope="col">Total Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in top_customers %}
+                <tr>
+                    <th scope="row">{{ c["name"] }}</th>
+                    <td>{{ c["country"] }}</td>
+                    <td>{{ c["total_sales"] | usd }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="width: 50%;">
+        <div>
+            <p class="title">Total Sales by Country</p>
+        </div>
+        <div id="pie-countries"></div>
+    </div>
+
+    <div style="width: 50%;">
+        <div>
+            <p class="title">Total Sales by Items</p>
+        </div>
+        <div id="pie-items"></div>
+    </div>
+
+</div>
 
 {% endblock %}
