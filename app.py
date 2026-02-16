@@ -89,6 +89,25 @@ def get_sales_by_date():
 
     return orders_processed
 
+def get_customers_info():
+    '''
+    This function returns information for all customers together with the sales
+    attributed to them.
+    '''
+    with engine.connect() as conn:
+        stmt = (
+            select(
+                customers_tab,
+                func.sum(orders_tab.c.total).label("total_sales")
+            )
+            .join(customers_tab, orders_tab.c.customer_id == customers_tab.c.id)
+            .group_by(customers_tab.c.id)
+            .order_by(desc(func.sum(orders_tab.c.total)))
+        )
+        customers = conn.execute(stmt).mappings().all()
+
+    return customers
+
 @app.route("/")
 @login_required
 def index():
@@ -97,19 +116,7 @@ def index():
     orders_processed = get_sales_by_date()
 
     # Collect top n customers by total sales
-    with engine.connect() as conn:
-        stmt = (
-            select(
-                customers_tab.c.name.label("name"),
-                customers_tab.c.country.label("country"),
-                func.sum(orders_tab.c.total).label("total_sales")
-            )
-            .join(customers_tab, orders_tab.c.customer_id == customers_tab.c.id)
-            .group_by(customers_tab.c.id)
-            .order_by(desc(func.sum(orders_tab.c.total)))
-            .limit(N_TOP_CUST)
-        )
-        top_customers = conn.execute(stmt).mappings().all()
+    top_customers = get_customers_info()[:N_TOP_CUST]
     
     # Collect total sales by customers' country
     with engine.connect() as conn:
@@ -155,6 +162,13 @@ def index():
         top_customers=top_customers
     )
 
+@app.route("/customers")
+@login_required
+def customers():
+    customers_data = get_customers_info()
+    customers_data_processed = process_data_for_chart(customers_data)
+    return render_template("customers.html", customers_data=customers_data_processed)
+
 @app.route("/api/sales_by_date")
 @login_required
 def api_sales_by_date():
@@ -175,6 +189,28 @@ def api_sales_by_date():
             for col in cols:
                 row.append(data[col][i])
             writer.writerow(row)
+        output = si.getvalue()
+
+    response = Response(output, mimetype='text/csv')
+    response.headers["Content-Disposition"] = "filename=products.csv"
+    return response
+
+@app.route("/api/customers_data")
+@login_required
+def customers_data():
+    # Get data on sales by date
+    data = get_customers_info()
+
+    # Generate csv output file
+    with io.StringIO() as si:
+        writer = csv.writer(si)
+        cols = list(data[0].keys())
+        writer.writerow(cols)
+        for row in data:
+            write_row = []
+            for col in cols:
+                write_row.append(row[col])
+            writer.writerow(write_row)
         output = si.getvalue()
 
     response = Response(output, mimetype='text/csv')

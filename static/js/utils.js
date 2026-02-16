@@ -73,7 +73,7 @@ export function plot_pie({div_id, values, labels}){
     if (!d_countries){
         return;
     }
-
+    
     let data = [{
         type: "pie",
         values: values,

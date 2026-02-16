@@ -1,13 +1,22 @@
+body
+{
+    background: #f6f8fb;
+}
 p.title
 {
-    font-size: large;
+    font-size: 18pt;
     text-align: left;
-}
-p.title-chart
-{
-    margin-left: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: .3px;
 }
 div.index-chart
 {
+    background-color: white;
     width: 45%;
+}
+
+th {
+  color: #6b7280;
+  letter-spacing: .3px;
 }

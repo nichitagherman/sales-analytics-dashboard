@@ -27,10 +27,5 @@ function plot_pie_sales(){
     });
 }
 
-function sendCsvSales(){
-
-}
-
 document.addEventListener('DOMContentLoaded', plot_ts_sales)
 document.addEventListener('DOMContentLoaded', plot_pie_sales)
-document.getElementById('#downloadCsvSales').addEventListener('click', sendCsvSales)

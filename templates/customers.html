@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block scripts %}
+<script>
+    let customers = {{ customers_data | tojson }};
+</script>
+<script type="module" src="{{ url_for('static', filename='js/table_customers.js') }}" defer></script>
+{% endblock %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+
+<div id="customers-table"></div>
+
+{% endblock %}

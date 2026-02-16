@@ -15,12 +15,12 @@
 
 {% block main %}
 
-<div class="d-flex justify-content-between mt-3">
+<div class="d-flex justify-content-between mt-3 ms-5 me-5">
 
-    <div class="index-chart">
-        <div class="d-flex">
+    <div class="index-chart border border-2 rounded-5 p-4">
+        <div class="d-flex border-bottom border-1 mb-3">
             <div class="flex-grow-1">
-                <p class="title title-chart">Total Sales</p>
+                <p class="title mb-2">Total Sales</p>
             </div>
             <div>
                 <a class="btn btn-success btn-sm" href="{{ url_for('api_sales_by_date') }}" role="button">Download Data</a>
@@ -29,14 +29,16 @@
         <div id="ts-sales"> </div>
     </div>
 
-    <div class="index-chart">
-        <p class="title">Top {{ top_customers | length }} Customers by Total Sales</p>
+    <div class="index-chart border border-2 rounded-5 p-4">
+        <div class="border-bottom border-1 mb-3">
+            <p class="title mb-2">Top {{ top_customers | length }} Customers by Total Sales</p>
+        </div>
         <table class="table">
             <thead class="thead-dark">
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Country</th>
-                    <th scope="col">Total Sales</th>
+                    <th scope="col">NAME</th>
+                    <th scope="col">COUNTRY</th>
+                    <th scope="col">TOTAL SALES</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,18 +55,18 @@
 
 </div>
 
-<div class="d-flex justify-content-between mt-3">
+<div class="d-flex justify-content-between mt-5 ms-5 me-5">
 
-    <div class="index-chart">
-        <div>
-            <p class="title title-chart">Total Sales by Country</p>
+    <div class="index-chart border border-2 rounded-5 p-4">
+        <div class="border-bottom border-1 mb-3">
+            <p class="title mb-2">Total Sales by Country</p>
         </div>
         <div id="pie-countries"></div>
     </div>
 
-    <div class="index-chart">
-        <div>
-            <p class="title title-chart">Total Sales by Items</p>
+    <div class="index-chart border border-2 rounded-5 p-4">
+        <div class="border-bottom border-1 mb-3">
+            <p class="title mb-2">Total Sales by Items</p>
         </div>
         <div id="pie-items"></div>
     </div>
