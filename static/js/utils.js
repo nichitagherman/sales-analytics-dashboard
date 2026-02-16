@@ -9,7 +9,10 @@ export function plot_ts({div_id, x, y}){
         y: y,
         type: "scatter",
         mode: "lines",
-        name: "value"
+        name: "value",
+        line: {
+            width: 3 
+        }
     };
 
     let layout = {
@@ -25,9 +28,9 @@ export function plot_ts({div_id, x, y}){
             autorange: true,
             rangeselector: {buttons: [
                 {
-                count: 1,
+                count: 7,
                 label: '1W',
-                step: 'week',
+                step: 'day',
                 stepmode: 'backward'
                 },
                 {

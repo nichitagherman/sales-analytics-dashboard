@@ -2,5 +2,12 @@ p.title
 {
     font-size: large;
     text-align: left;
-    margin-left: 1%;
+}
+p.title-chart
+{
+    margin-left: 10px;
+}
+div.index-chart
+{
+    width: 45%;
 }

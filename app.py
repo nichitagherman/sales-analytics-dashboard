@@ -12,12 +12,15 @@ from sqlalchemy import (
     desc
 )
 
+import io
+import csv
+from datetime import datetime
+
 from helpers import login_required, usd, process_data_for_chart
 
-from flask import Flask, abort, render_template, redirect, request, session
+from flask import Flask, abort, render_template, redirect, request, session, Response
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -67,14 +70,13 @@ N_TOP_CUST = 10
 # Number of top countries by sales to be represented on pie chart explicitly
 N_TOP_COUNTRIES = 10
 
-@app.route("/")
-@login_required
-def index():
-
-    # Collect total sales number by dates
+def get_sales_by_date():
+    '''
+    This function returns total sales sorted by date
+    '''
     with engine.connect() as conn:
         stmt = (
-            select(orders_tab.c.order_date, 
+            select(orders_tab.c.order_date.label("date"), 
                    func.sum(orders_tab.c.total).label("total_sales"), 
                    func.sum(orders_tab.c.quantity).label("total_quantity"))
             .group_by(orders_tab.c.order_date)
@@ -83,7 +85,16 @@ def index():
         orders = conn.execute(stmt).mappings().all()
 
     orders_processed = process_data_for_chart(orders)
-    orders_processed['order_date'] = [d.split(' ')[0] for d in orders_processed["order_date"]]
+    orders_processed['date'] = [d.split(' ')[0] for d in orders_processed["date"]]
+
+    return orders_processed
+
+@app.route("/")
+@login_required
+def index():
+
+    # Collect total sales by dates
+    orders_processed = get_sales_by_date()
 
     # Collect top n customers by total sales
     with engine.connect() as conn:
@@ -144,6 +155,31 @@ def index():
         top_customers=top_customers
     )
 
+@app.route("/api/sales_by_date")
+@login_required
+def api_sales_by_date():
+    # Get data on sales by date
+    data = get_sales_by_date()
+
+    # Generate csv output file
+    with io.StringIO() as si:
+        writer = csv.writer(si)
+        cols = list(data.keys())
+        writer.writerow(cols)
+        len_col0 = len(data[cols[0]])
+        # Number of elements in array should be the same across keys
+        for col in cols:
+            assert len(data[col]) == len_col0
+        for i in range(len_col0):
+            row = []
+            for col in cols:
+                row.append(data[col][i])
+            writer.writerow(row)
+        output = si.getvalue()
+
+    response = Response(output, mimetype='text/csv')
+    response.headers["Content-Disposition"] = "filename=products.csv"
+    return response
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

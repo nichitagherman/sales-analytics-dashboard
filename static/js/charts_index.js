@@ -4,7 +4,7 @@ function plot_ts_sales(){
 
     plot_ts({
         div_id: '#ts-sales',
-        x: ts_sales["order_date"],
+        x: ts_sales["date"],
         y: ts_sales["total_sales"]
     });
     
@@ -27,5 +27,10 @@ function plot_pie_sales(){
     });
 }
 
+function sendCsvSales(){
+
+}
+
 document.addEventListener('DOMContentLoaded', plot_ts_sales)
 document.addEventListener('DOMContentLoaded', plot_pie_sales)
+document.getElementById('#downloadCsvSales').addEventListener('click', sendCsvSales)

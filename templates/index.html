@@ -14,17 +14,22 @@
 {% endblock %}
 
 {% block main %}
-<div>
 
-    <div style="width: 50%;">
-        <div>
-            <p class="title">Total Sales</p>
-            <button id="download_total_"></button>
+<div class="d-flex justify-content-between mt-3">
+
+    <div class="index-chart">
+        <div class="d-flex">
+            <div class="flex-grow-1">
+                <p class="title title-chart">Total Sales</p>
+            </div>
+            <div>
+                <a class="btn btn-success btn-sm" href="{{ url_for('api_sales_by_date') }}" role="button">Download Data</a>
+            </div>
         </div>
         <div id="ts-sales"> </div>
     </div>
 
-    <div style="width: 50%;">
+    <div class="index-chart">
         <p class="title">Top {{ top_customers | length }} Customers by Total Sales</p>
         <table class="table">
             <thead class="thead-dark">
@@ -37,7 +42,7 @@
             <tbody>
                 {% for c in top_customers %}
                 <tr>
-                    <th scope="row">{{ c["name"] }}</th>
+                    <td>{{ c["name"] }}</td>
                     <td>{{ c["country"] }}</td>
                     <td>{{ c["total_sales"] | usd }}</td>
                 </tr>
@@ -46,16 +51,20 @@
         </table>
     </div>
 
-    <div style="width: 50%;">
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+
+    <div class="index-chart">
         <div>
-            <p class="title">Total Sales by Country</p>
+            <p class="title title-chart">Total Sales by Country</p>
         </div>
         <div id="pie-countries"></div>
     </div>
 
-    <div style="width: 50%;">
+    <div class="index-chart">
         <div>
-            <p class="title">Total Sales by Items</p>
+            <p class="title title-chart">Total Sales by Items</p>
         </div>
         <div id="pie-items"></div>
     </div>
