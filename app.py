@@ -9,7 +9,7 @@ from sqlalchemy import (
     select, 
     update, 
     func, 
-    desc
+    desc,
 )
 
 import io
@@ -104,7 +104,10 @@ def get_customers_info():
             .group_by(customers_tab.c.id)
             .order_by(desc(func.sum(orders_tab.c.total)))
         )
-        customers = conn.execute(stmt).mappings().all()
+        rows = conn.execute(stmt)
+        customers = []
+        for r in rows:
+            customers.append(r._asdict())
 
     return customers
 
@@ -166,8 +169,7 @@ def index():
 @login_required
 def customers():
     customers_data = get_customers_info()
-    customers_data_processed = process_data_for_chart(customers_data)
-    return render_template("customers.html", customers_data=customers_data_processed)
+    return render_template("customers.html", customers_data=customers_data)
 
 @app.route("/api/sales_by_date")
 @login_required
