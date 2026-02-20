@@ -7,7 +7,8 @@ from sqlalchemy import (
     Float, 
     ForeignKey, 
     select, 
-    update, 
+    update,
+    delete,
     func, 
     desc,
 )
@@ -16,7 +17,7 @@ import io
 import csv
 from datetime import datetime
 
-from helpers import login_required, usd, process_data_for_chart
+from helpers import login_required, admin_required, usd, process_data_for_chart
 
 from flask import Flask, abort, render_template, redirect, request, session, Response
 from flask_session import Session
@@ -110,6 +111,16 @@ def get_customers_info():
             customers.append(r._asdict())
 
     return customers
+
+def get_username(id):
+    '''
+    Get username for provided user id
+    '''
+    with engine.connect() as conn:
+        stmt = select(users_tab).where(users_tab.c.id == id)
+        rows = conn.execute(stmt).mappings().all()
+
+    return rows[0]['username']
 
 @app.route("/")
 @login_required
@@ -307,13 +318,81 @@ def change_password():
                 return abort(500)
 
         session.clear()
-        session["password_changed"] = 1
+        session["message"] = "Password was successfully updated!"
         
         # Redirect user to home page
         return redirect("/")
 
     else:
         return render_template("change_password.html")
+    
+@app.route("/manage_users", methods=["GET", "POST"])
+@login_required
+@admin_required
+def manage_users():
+    """If admin, manage the rights of users with rights='user'"""
+    
+    if request.method == "POST":
+
+        if request.form.get("revoke"):
+
+            id_upd = request.form.get("revoke")
+            username_upd = get_username(id_upd)
+
+            with engine.begin() as conn:
+                stmt = (
+                    delete(users_tab)
+                    .where(users_tab.c.id == id_upd)
+                )
+                result = conn.execute(stmt)
+    
+                if result.rowcount == 0:
+                    return abort(500)
+            
+            session["message"] = f"Rights of user `{username_upd}` were successfully revoked"
+
+        elif request.form.get("update"):
+            if request.form.get("update"):
+                type_upd, id_upd = request.form.get("update").split("_")
+
+            if type_upd == "upgrade":
+                new_rights = "admin"
+            
+            elif type_upd == "downgrade":
+                new_rights = "user"
+
+            with engine.begin() as conn:
+                stmt = (
+                    update(users_tab)
+                    .where(users_tab.c.id == id_upd)
+                    .values(rights = new_rights)
+                )
+                result = conn.execute(stmt)
+    
+                if result.rowcount == 0:
+                    return abort(500)
+            
+            session["message"] = f"Rights of user `{get_username(id_upd)}` were successfully {type_upd}d"
+
+        else:
+            return abort(400)
+        
+        return redirect("/manage_users")
+        
+    else:
+        # Get the list of all other users and their rights
+        with engine.connect() as conn:
+            stmt = (
+                select(users_tab.c.id, users_tab.c.username, users_tab.c.rights)
+                .where((users_tab.c.rights.in_(['user', 'admin'])) & (users_tab.c.id != session['user_id']))
+                .order_by(users_tab.c.rights)
+            )
+            rows = conn.execute(stmt)
+            users = []
+            for r in rows:
+                users.append(r._asdict())
+        
+        return render_template("manage_users.html", users=users)
     
 @app.context_processor
 def inject_session():
@@ -325,13 +404,13 @@ def inject_session():
         logged = 0
         rights = None
     
-    if session.get("password_changed") is not None:
-        password_changed = 1
-        session["password_changed"] = None
+    if session.get("message") is not None:
+        message = session.get("message")
+        session["message"] = None
     else:
-        password_changed = 0
+        message = None
         
-    return dict(logged=logged, rights=rights, password_changed=password_changed)
+    return dict(logged=logged, rights=rights, message=message)
 
 @app.errorhandler(400)
 def page_not_found(e):

@@ -2,6 +2,7 @@ body
 {
     background: #f6f8fb;
 }
+
 p.title
 {
     font-size: 18pt;
@@ -10,6 +11,7 @@ p.title
     font-weight: 700;
     letter-spacing: .3px;
 }
+
 div.index-chart
 {
     background-color: white;
@@ -20,3 +22,88 @@ th {
   color: #6b7280;
   letter-spacing: .3px;
 }
+
+div.customers-tab {
+    background-color: white;
+    width: 80%;
+}
+
+div.users-tab {
+    background-color: white;
+    width: 30%;
+    font-size: 14pt;
+    text-align: center;
+}
+
+/* ChatGPT stylization of js Tabulator */
+#customers-table{
+  border: 1px solid #e6eaf0;
+  border-radius: 14px;
+  overflow: hidden;            
+  background: #fff;
+}
+
+/* ChatGPT stylization of js Tabulator */
+.tabulator{
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-size: 16px;
+}
+
+/* ChatGPT stylization of js Tabulator */
+.tabulator .tabulator-header{
+  background: #f8fafc;
+  border-bottom: 1px solid #e6eaf0;
+}
+.tabulator .tabulator-col{
+  background: transparent;
+  border-right: 1px solid #eef2f7;
+}
+.tabulator .tabulator-col-title{
+  font-weight: 600;
+  letter-spacing: .2px;
+  color: #0f172a;
+}
+.tabulator .tabulator-col:last-child{
+  border-right: 0;
+}
+/* filter inputs in header */
+.tabulator .tabulator-header .tabulator-col input,
+.tabulator .tabulator-header .tabulator-col select{
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 6px 8px;
+  height: 30px;
+  font-size: 12px;
+  background: #fff;
+}
+/* rows */
+.tabulator .tabulator-row{
+  border-bottom: 1px solid #f0f2f6;
+}
+.tabulator .tabulator-row.tabulator-row-even{
+  background: #fcfdff;
+}
+.tabulator .tabulator-row:hover{
+  background: #f3f6fb;
+}
+/* cells */
+.tabulator .tabulator-cell{
+  padding: 10px 10px;
+  color: #111827;
+}
+/* footer/pagination */
+.tabulator .tabulator-footer{
+  background: #fff;
+  border-top: 1px solid #e6eaf0;
+}
+.tabulator .tabulator-page{
+  border-radius: 10px;
+}
+
+.clickable { 
+    cursor: pointer;
+}
+
+tr:hover td {
+background-color: #c1c6d0;
+}.  

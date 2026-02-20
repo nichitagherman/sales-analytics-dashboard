@@ -83,8 +83,8 @@ var table = new Tabulator("#customers-table", {
 
     layout:"fitColumns",
     pagination:"local",
-    paginationSize:10,
-    paginationSizeSelector:[3, 5, 10, 20],
+    paginationSize:20,
+    paginationSizeSelector:[5, 10, 20, 50],
     movableColumns:true,
     paginationCounter:"rows",
     columns:[

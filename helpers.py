@@ -14,6 +14,19 @@ def login_required(f):
 
     return decorated_function
 
+def admin_required(f):
+    """
+    Decorate routes to require admin rights
+    """
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("rights") != "admin":
+            return redirect("/")
+        return f(*args, **kwargs)
+
+    return decorated_function
+
 def usd(value):
     """Format value as USD."""
     return f"${value:,.0f}"
@@ -25,7 +38,7 @@ def process_data_for_chart(data):
     from [{}, {}, {}] into {[], []} format,
     convenient for JS charts
     """
-    
+
     processed_data = {}
     for row in data:
         for col, val in row.items():

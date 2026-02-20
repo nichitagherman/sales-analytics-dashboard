@@ -8,14 +8,18 @@
 {% endblock %}
 
 {% block title %}
-    Home
+    Customers
 {% endblock %}
 
 {% block main %}
-<div>
-    <button class="btn btn-success btn-sm" id="download-csv">Download Data</a>
+<div class="mt-5 mx-auto customers-tab">
+    <div class="border border-2 rounded-5 p-4">
+        <div class="d-flex flex-row-reverse mb-2">
+        <button class="btn btn-success btn-sm" id="download-csv">Download Data</a>
+        </div>
+
+        <div id="customers-table"></div>
+    </div>
+
 </div>
-
-<div id="customers-table"></div>
-
 {% endblock %}

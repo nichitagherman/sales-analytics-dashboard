@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Manage users
+{% endblock %}
+
+{% block main %}
+<div class="mt-5 mx-auto users-tab">
+    <div class="border border-2 rounded-5 p-4">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">USERNAME</th>
+                    <th scope="col">REVOKE RIGHTS</th>
+                    <th scope="col">CHANGE RIGHTS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <form action="/manage_users" method="POST">
+                {% for u in users %}
+                    <tr>
+                        <td>{{ u["id"] }}</td>
+                        <td>{{ u["username"] }}</td>
+                        <td> <button type="submit" class="btn btn-danger" name="revoke" value="{{ u['id'] }}" onclick="return confirm('Are you sure you want to revoke rights from `{{ u["username"] }}`?')">Revoke Rights</button> </td>
+                        {% if u["rights"] == "admin" %}
+                        <td> <button type="submit" class="btn btn-primary" name="update" value="downgrade_{{ u['id'] }}" onclick="return confirm('Are you sure you want to downgrade revoke admin rights for `{{ u["username"] }}` ?')">Downgrade to User</button> </td>
+                        {% elif u["rights"] == "user" %}
+                        <td> <button type="submit" class="btn btn-primary" name="update" value="upgrade_{{ u['id'] }}" onclick="return confirm('Are you sure you want to grant admin rights to `{{ u["username"] }}`?')">Make Admin</button> </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
